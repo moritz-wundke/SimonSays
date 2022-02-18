@@ -1,7 +1,6 @@
-using System;
 using UnityEngine;
 
-namespace Utils
+namespace SimonSays.Utils
 {
     public static class ClipboardExtension
     {

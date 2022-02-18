@@ -16,7 +16,15 @@ namespace SimonSays.Utils
                 {
                     return _instance;
                 }
-
+                
+                // Find in scene
+                if (FindObjectsOfType(typeof(T)) is T[] objs && objs.Length > 0)
+                {
+                    _instance = objs[0];
+                    return _instance;
+                }
+                
+                // Spawn in case we have to
                 var obj = new GameObject
                 {
                     name = typeof(T).Name

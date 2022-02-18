@@ -1,67 +1,83 @@
+using System;
 using System.Threading.Tasks;
 using SimonSays.Utils;
 using Unity.Netcode;
-using Unity.Services.Authentication;
-using Unity.Services.Core;
-using Unity.Services.Core.Environments;
-using Unity.Services.Relay;
-using Unity.Services.Relay.Models;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SimonSays.Connection
 {
     public class ConnectionManager : Singleton<ConnectionManager>
     {
-        public const int MAX_PLAYERS = 4;
-        
-        [SerializeField]
-        private string environment = "production";
-        [SerializeField]
-        private int maxPLayers = MAX_PLAYERS;
-
-        public UnityTransport Transport => NetworkManager.Singleton.gameObject.GetComponent<UnityTransport>();
-        public bool IsRelayEnabled => Transport != null && Transport.Protocol == UnityTransport.ProtocolType.RelayUnityTransport;
-
+        public string JoinCode { get; private set; }
         public ConnectionState State { get; private set; } = ConnectionState.Disconnected;
 
-        private async Task Initialize()
+        public UnityEvent OnConnectionStateChanged = new UnityEvent();
+
+        private void Start()
         {
-            await UnityServices.InitializeAsync(new InitializationOptions().SetEnvironmentName(environment));
+            DontDestroyOnLoad(NetworkManager.Singleton);
             
-            if (!AuthenticationService.Instance.IsSignedIn)
+            // STATUS TYPE CALLBACKS
+            NetworkManager.Singleton.OnClientConnectedCallback += (id) =>
             {
-                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+                Debug.Log($"{id} just connected...");
+            };
+        }
+
+        public async void StartServer(bool host = true)
+        {
+            if (State != ConnectionState.Disconnected)
+            {
+                throw new Exception("Already in a match");
             }
-        }
 
-        public async Task<string> HostServer()
-        {
-            Debug.Log("Hosting server", this);
-
-            await Initialize();
-            
-            var allocation = await Relay.Instance.CreateAllocationAsync(maxPLayers);
-            var joinCode = await Relay.Instance.GetJoinCodeAsync(allocation.AllocationId);
-            
-            Transport.SetRelayServerData(allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port, allocation.AllocationIdBytes,
-                                         allocation.Key, allocation.ConnectionData);
-            
+            JoinCode = await ServiceManager.Instance.HostServer();
+            if (host)
+            {
+                Debug.Log(NetworkManager.Singleton.StartHost() ? "Starting server as host" : "Can not start host");
+            }
+            else
+            {
+                Debug.Log(NetworkManager.Singleton.StartServer() ? "Starting dedicated server" : "Can not start host");
+            }
+           
             State = ConnectionState.Host;
-            return joinCode;
+            
+            
+            // Connection state changed
+            OnConnectionStateChanged.Invoke();
         }
-        
-        public async void JoinServer(string joinCode)
+
+        public async void Join(string joinCode)
         {
-            Debug.Log($"Joining server {joinCode}", this);
-            
-            await Initialize();
-            
-            var allocation = await Relay.Instance.JoinAllocationAsync(joinCode);
-            
-            Transport.SetRelayServerData(allocation.RelayServer.IpV4, (ushort)allocation.RelayServer.Port, allocation.AllocationIdBytes,
-                                         allocation.Key, allocation.ConnectionData, allocation.HostConnectionData);
-            
+            if (State != ConnectionState.Disconnected)
+            {
+                throw new Exception("Already in a match");
+            }
+
+            JoinCode = joinCode;
+            await ServiceManager.Instance.JoinServer(JoinCode);
+            Debug.Log(NetworkManager.Singleton.StartClient() ? "Hosting!" : "Can not start host");
             State = ConnectionState.Client;
+            
+            // Connection state changed
+            OnConnectionStateChanged.Invoke();
+        }
+
+        public void Disconnect()
+        {
+            if (State == ConnectionState.Disconnected)
+            {
+                throw new Exception("Not connected");
+            }
+            NetworkManager.Singleton.Shutdown();
+            ServiceManager.Instance.Disconnect();
+            
+            State = ConnectionState.Disconnected;
+
+            // Connection state changed
+            OnConnectionStateChanged.Invoke();
         }
     }
 }
