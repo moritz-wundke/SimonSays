@@ -34,17 +34,10 @@ namespace SimonSays.UI
         {
             gameObject.SetActive(ConnectionManager.Instance.State != ConnectionState.Disconnected);
 
-            if (gameObject.activeSelf)
-            {
-                ownerPlayer.gameObject.SetActive(true);
-            }
-            else
-            {
-                ownerPlayer.gameObject.SetActive(false);
-                player1.gameObject.SetActive(false);
-                player2.gameObject.SetActive(false);
-                player3.gameObject.SetActive(false);
-            }
+            ownerPlayer.gameObject.SetActive(false);
+            player1.gameObject.SetActive(false);
+            player2.gameObject.SetActive(false);
+            player3.gameObject.SetActive(false);
         }
 
         public void OnPlayerSpawned(PlayerController player)

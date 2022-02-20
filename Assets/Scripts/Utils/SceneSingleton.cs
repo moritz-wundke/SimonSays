@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace SimonSays.Utils
@@ -6,6 +7,18 @@ namespace SimonSays.Utils
         where T : SceneSingleton<T>
     {
         private static T _instance;
+
+        private void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = (T)this;
+            }
+            else
+            {
+                Destroy(gameObject);
+            }
+        }
 
         public static T Instance
         {
@@ -17,7 +30,7 @@ namespace SimonSays.Utils
                 }
                 
                 // Find in scene
-                if (FindObjectsOfType(typeof(T)) is T[] objs && objs.Length > 0)
+                if (FindObjectsOfType(typeof(T), true) is T[] objs && objs.Length > 0)
                 {
                     _instance = objs[0];
                     return _instance;

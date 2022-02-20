@@ -3,7 +3,8 @@ namespace SimonSays
     public enum GameState
     {
         Pre,
-        InProgress,
+        GeneratePattern,
+        PlayPattern,
         Post
     }
 }

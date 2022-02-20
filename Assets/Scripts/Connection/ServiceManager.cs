@@ -30,7 +30,7 @@ namespace SimonSays.Connection
             }
             
             VivoxService.Instance.Initialize();
-            //TODO:  https://docs.vivox.com/v5/general/unity/15_1_160000/en-us/Default.htm#Unity/vivox-unity-first-steps.htm%3FTocPath%3DVivox%2520Unity%2520SDK%2520documentation%7C_____1
+            // TODO:  https://docs.vivox.com/v5/general/unity/15_1_160000/en-us/Default.htm#Unity/vivox-unity-first-steps.htm%3FTocPath%3DVivox%2520Unity%2520SDK%2520documentation%7C_____1
         }
 
         public async Task<string> HostServer()

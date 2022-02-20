@@ -13,7 +13,6 @@ namespace SimonSays.UI
         
         private void Awake()
         {
-            
             ConnectionManager.Instance.OnConnectionStateChanged.AddListener(OnConnectionStateChanged);
         }
 

@@ -36,7 +36,7 @@ namespace SimonSays.UI
             {
                 if (string.IsNullOrEmpty(joinCodeInput.text))
                 {
-                    Debug.Log("Please enter a valid join code");
+                    Debug.LogError("Please enter a valid join code");
                     return;
                 }
                 ConnectionManager.Instance.Join(joinCodeInput.text);
